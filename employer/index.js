@@ -14,10 +14,10 @@ app.use(express.json());
 const port = 3000;
 
 const db = mysql.createConnection({
-    host: 'localhost',
-    user: 'root',
-    password: 'r2d2c3po',
-    database: 'login-db'
+    host: process.env.DATABASE_HOST,
+    user: process.env.DATABASE_USER,
+    password: process.env.DATABASE_PASSWORD,
+    database: process.env.DATABASE
 });
 
 db.connect((error)=>{
@@ -50,10 +50,15 @@ app.post('/auth/register', (req, res) => {
             return res.status(400).send('User Already Registered');
         }
 
-        // let hashedPassword = await bcrypt.hash(password, 8)
-        // console.log(hashedPassword)
+        const hashedPassword = await bcrypt.hash(password, 8);
+
+        const newUser = {
+            name: name,
+            email: email,
+            password: password
+        };
        
-        db.query('INSERT INTO users SET?', {name: name, email: email, password: password}, (err, result) => {
+        db.query('INSERT INTO users SET?', newUser, (err, result) => {
             if(error) {
                 console.log(error)
             } 
@@ -61,7 +66,7 @@ app.post('/auth/register', (req, res) => {
                 return res.status(200).send('Successfully Registered')
             }
         })        
-    })
+    });
 });
 
 app.post('/auth/login', (req, res) => {
@@ -78,10 +83,11 @@ app.post('/auth/login', (req, res) => {
         }
 
         if( result.length === 0 ) {
-            return res.status(401).send('Authentication failed');
+            return res.status(401).send('No user with Emal');
         }
 
         const user = result[0];
+
         const passwordMatch = password === user.password;
         
         if(!passwordMatch){
