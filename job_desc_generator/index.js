@@ -1,13 +1,60 @@
 const express = require('express');
-
+const dotenv = require('dotenv');
+const OpenAI = require("openai");
 const app = express();
 
 app.use(express.json())
 
 const port = 3001;
 
-app.post('/generate-from-task', (req, res)=>{
-    const { task } = req;
+dotenv.config({ path: './.env'});
+
+const openai = new OpenAI({apiKey: process.env.OPENAI_KEY});
+
+app.post('/generate-from-task', async (req, res)=>{
+    const { task } = req.body;
+
+    const messages = [
+        { role: "user", content: task },
+        {
+            role: "system",
+            content: `You are a job description writer assistant. You should write job description and requirements according to tasks that user will provide to you. Here is the example how job description should look like and formatted: 
+            "Description: 
+            *job description*
+            Responsibilities:
+            *responsibilities*
+            Requirements:
+            *requirements*
+            "
+            everything should be written with bullet points
+            `
+        }
+    ];
+
+    const payload = {
+        model: 'gpt-3.5-turbo',
+        messages: messages,
+        temperature: 0,
+        max_tokens: 1024,
+        top_p: 1,
+        frequency_penalty: 0,
+        presence_penalty: 0,
+        n: 1,
+    };
+
+    try{
+        if(task === null){
+            return res.status(400).send('Missing prompt');
+        }
+
+        const response = await openai.chat.completions.create(payload);
+        const jobDescription = response.choices[0].message.content;
+
+        return res.status(200).send(jobDescription);
+    } catch(error){
+        console.error(error);
+        res.status(500).send('Error while generating prompt');
+    }
 });
 
 app.post('/generate-from-project', (req, res)=>{
