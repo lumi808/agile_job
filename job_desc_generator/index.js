@@ -2,8 +2,22 @@ const express = require('express');
 const dotenv = require('dotenv');
 const OpenAI = require("openai");
 const app = express();
+const cors = require('cors');
 
 app.use(express.json())
+
+const allowedOrigins = ['http://localhost:3000', 'https://www.getpostman.com'];
+
+app.use(cors({
+    origin: (origin, callback)=>{
+        if(allowedOrigins.includes(origin)){
+            callback(null, true);
+        }
+        else{
+            callback(new Error('Now Allowed by CORS'));
+        }
+    }
+}));
 
 const port = 3001;
 
@@ -11,16 +25,16 @@ dotenv.config({ path: './.env'});
 
 const openai = new OpenAI({apiKey: process.env.OPENAI_KEY});
 
-app.post('/generate-from-task', async (req, res)=>{
-    const { task } = req.body;
+app.post('/generate-from-task', cors(), async (req, res)=>{
+    const { prompt } = req.body;
 
     try{
-        if(task === null || task === ''){
-            return res.status(400).send('Missing prompt');
+        if(prompt === null || prompt === ''){
+            return res.status(400).json({ error: 'Missing Prompt' });
         }
 
         const messages = [
-            { role: "user", content: task },
+            { role: "user", content: prompt },
             {
                 role: "system",
                 content: `You are a job description writer assistant. You should write job description and requirements according to tasks that user will provide to you. Here is the example how job description should look like and formatted: 
@@ -50,23 +64,23 @@ app.post('/generate-from-task', async (req, res)=>{
         const response = await openai.chat.completions.create(payload);
         const jobDescription = response.choices[0].message.content;
 
-        return res.status(200).send(jobDescription);
+        return res.status(200).json({ message: 'Data generated successfully', data: jobDescription });
     } catch(error){
         console.error(error);
-        res.status(500).send('Error while generating prompt');
+        res.status(500).json({ error: 'Error while generating prompt' });
     }
 });
 
-app.post('/generate-from-project', async (req, res)=>{
-    const { project } = req.body;
+app.post('/generate-from-project', cors(), async (req, res)=>{
+    const { prompt } = req.body;
 
     try{
-        if(project === null || project === ''){
-            return res.status(400).send('Missing prompt');
+        if(prompt === null || prompt === ''){
+            return res.status(400).json({ error: 'Missing Prompt' });
         }
 
         const messages = [
-            { role: "user", content: project },
+            { role: "user", content: prompt },
             {
                 role: "system",
                 content: `You are a job description writer assistant. You should write job description and requirements according to project description and role that user will provide to you. Here is the example how job description should look like and formatted: 
@@ -96,10 +110,10 @@ app.post('/generate-from-project', async (req, res)=>{
         const response = await openai.chat.completions.create(payload);
         const jobDescription = response.choices[0].message.content;
 
-        return res.status(200).send(jobDescription);
+        return res.status(200).json({ message: 'Data generated successfully', data: jobDescription });
     } catch(error){
         console.error(error);
-        res.status(500).send('Error while generating prompt');
+        res.status(500).json({ error: 'Error while generating prompt' });
     }
 }); 
 
