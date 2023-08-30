@@ -6,11 +6,25 @@ import { PineconeClient } from '@pinecone-database/pinecone';
 import { OpenAIEmbeddings } from 'langchain/embeddings/openai';
 import { PineconeStore } from 'langchain/vectorstores/pinecone';
 import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
+import cors from 'cors';
 
 
 const app = express();
 
 app.use(express.json());
+
+const allowedOrigins = ['http://localhost:3000', 'https://www.getpostman.com'];
+
+app.use(cors({
+    origin: (origin, callback)=>{
+        if(allowedOrigins.includes(origin)){
+            callback(null, true);
+        }
+        else{
+            callback(new Error('Now Allowed by CORS'));
+        }
+    }
+}));
 
 const port = 3002;
 
@@ -68,20 +82,20 @@ const getData = async (query) => {
     return response.choices[0].message.content;
 };
 
-app.post('/search', async (req, res)=>{
+app.post('/search', cors(), async (req, res)=>{
     const { jobDescription } = req.body;
-    
+
     try{
         const response = await getData(jobDescription);
         
         if(response === '' || response === null){
-            return res.status(500).send('Error while loading candidates');
+            return res.status(500).json({ error: 'Error while loading candidates' });
         }
 
-        res.status(200).send(response);
+        res.status(200).json({ message: 'Data loaded successfully', data: response });
     } catch(error) {
         console.error(error);
-        res.status(500).send('Internal Server Error');
+        res.status(500).json({ error: 'Internal Server Error' });
     }
 });
 
