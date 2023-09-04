@@ -1,6 +1,7 @@
 const express = require('express');
 const dotenv = require('dotenv');
 const OpenAI = require('openai');
+const cors = require('cors')
 
 const app = express();
 app.use(express.urlencoded({extended: 'false'}))
@@ -8,24 +9,42 @@ app.use(express.json());
 
 const port = 3003;
 
+const allowedOrigins = ['http://localhost:3000'];
+
+app.use(cors({
+    origin: (origin, callback)=>{
+        if(allowedOrigins.includes(origin)){
+            callback(null, true);
+        }
+        else{
+            callback(new Error('Now Allowed by CORS'));
+        }
+    }
+}));
+
 dotenv.config({ path: './.env'});
 
 const openai = new OpenAI({apiKey: process.env.OPENAI_KEY});
 
-app.post('/student-action-plan/generate-plan', async (req, res)=>{
-    const {prompt} = req.body;
+app.post('/student-action-plan/generate-plan', cors(), async (req, res)=>{
+    const { major, yearOfStudy, dreamJob, dreamProject, careerGoal } = req.body;
+    const fields = [major, yearOfStudy, dreamJob, dreamProject, careerGoal];
+
     try{
-        if (prompt === null || prompt === ''){
+        if (fields.some(field => field === null || field === '')){
             return res.status(400).json({ error: 'Missing Prompt' });
         }
 
+        const prompt = `I am ${yearOfStudy} Year ${major} student. I want to be a ${dreamJob}. My dream project I would like to work on is ${dreamProject}. My main career goal for now is ${careerGoal}. Could you give me an action plan please?`
         const messages = [
             { role: "user", content: prompt },
             {
                 role: "system",
-                content: `You are a job assistant, who helps students to build their careers. Your main function is to provide a student with a action plan for building career according to student's current profile, CV, dream job, dream project, career goal.`
+                content: `You are a job assistant, who helps students to build their careers. Your main function is to provide a student with a action plan for building career according to student's current profile, CV, dream job, dream project, career goal. Your answer shhould be detailed as possible and should be structured in steps.`
             }
         ];
+
+        console.log(prompt);
 
         const payload = {
             model: 'gpt-3.5-turbo',
