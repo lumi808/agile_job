@@ -2,10 +2,13 @@ const express = require('express');
 const dotenv = require('dotenv');
 const OpenAI = require('openai');
 const cors = require('cors')
+const pdf = require('pdf-parse');
+const fileUpload = require('express-fileupload');
 
 const app = express();
 app.use(express.urlencoded({extended: 'false'}))
 app.use(express.json());
+app.use(fileUpload());
 
 const port = 3003;
 
@@ -26,16 +29,35 @@ dotenv.config({ path: './.env'});
 
 const openai = new OpenAI({apiKey: process.env.OPENAI_KEY});
 
+async function extractPdfText(req) {
+    const pdfFile = req.files.cv; // Assuming you are using a file upload library like `express-fileupload`
+    const dataBuffer = pdfFile.data; // Get the binary data of the PDF file
+    const data = new Uint8Array(dataBuffer);
+    
+    // Use pdf-parse to extract text from the PDF
+    const pdfText = await pdf(data);
+
+    return pdfText.text; // Return the extracted text
+}
+
 app.post('/student-action-plan/generate-plan', cors(), async (req, res)=>{
     const { major, yearOfStudy, dreamJob, dreamProject, careerGoal } = req.body;
-    const fields = [major, yearOfStudy, dreamJob, dreamProject, careerGoal];
+    const fields = [major, yearOfStudy, dreamJob, dreamProject, careerGoal]; 
 
     try{
         if (fields.some(field => field === null || field === '')){
             return res.status(400).json({ error: 'Missing Prompt' });
         }
 
-        const prompt = `I am ${yearOfStudy} Year ${major} student. I want to be a ${dreamJob}. My dream project I would like to work on is ${dreamProject}. My main career goal for now is ${careerGoal}. Could you give me an action plan please?`
+        // pdf(req.files.cv).then( result =>{
+        //     const pdfText = result.text;
+        //     console.log(`PDF TEXT IS FOLLOWING: ${pdfText}`);
+        // });
+
+        const pdfResult = await pdf(req.files.cv);
+        const pdfText = pdfResult.text;
+
+        const prompt = `I am ${yearOfStudy} Year ${major} student. I want to be a ${dreamJob}. My dream project I would like to work on is ${dreamProject}. My main career goal for now is ${careerGoal}. Here is also my CV: ${pdfText}. Could you give me an action plan please?`
         const messages = [
             { role: "user", content: prompt },
             {
