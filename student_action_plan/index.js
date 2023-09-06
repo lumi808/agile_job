@@ -29,16 +29,6 @@ dotenv.config({ path: './.env'});
 
 const openai = new OpenAI({apiKey: process.env.OPENAI_KEY});
 
-async function extractPdfText(req) {
-    const pdfFile = req.files.cv; // Assuming you are using a file upload library like `express-fileupload`
-    const dataBuffer = pdfFile.data; // Get the binary data of the PDF file
-    const data = new Uint8Array(dataBuffer);
-    
-    // Use pdf-parse to extract text from the PDF
-    const pdfText = await pdf(data);
-
-    return pdfText.text; // Return the extracted text
-}
 
 app.post('/student-action-plan/generate-plan', cors(), async (req, res)=>{
     const { major, yearOfStudy, dreamJob, dreamProject, careerGoal } = req.body;
@@ -48,11 +38,6 @@ app.post('/student-action-plan/generate-plan', cors(), async (req, res)=>{
         if (fields.some(field => field === null || field === '')){
             return res.status(400).json({ error: 'Missing Prompt' });
         }
-
-        // pdf(req.files.cv).then( result =>{
-        //     const pdfText = result.text;
-        //     console.log(`PDF TEXT IS FOLLOWING: ${pdfText}`);
-        // });
 
         const pdfResult = await pdf(req.files.cv);
         const pdfText = pdfResult.text;
@@ -65,8 +50,6 @@ app.post('/student-action-plan/generate-plan', cors(), async (req, res)=>{
                 content: `You are a job assistant, who helps students to build their careers. Your main function is to provide a student with a action plan for building career according to student's current profile, CV, dream job, dream project, career goal. Your answer shhould be detailed as possible and should be structured in steps.`
             }
         ];
-
-        console.log(prompt);
 
         const payload = {
             model: 'gpt-3.5-turbo',
