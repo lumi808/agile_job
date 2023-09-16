@@ -51,6 +51,8 @@ app.post('/student-action-plan/generate-plan', cors(), async (req, res)=>{
             }
         ];
 
+        console.log(prompt);
+
         const payload = {
             model: 'gpt-3.5-turbo',
             messages: messages,
