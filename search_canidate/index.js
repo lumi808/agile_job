@@ -13,7 +13,7 @@ const app = express();
 
 app.use(express.json());
 
-const allowedOrigins = ['http://localhost:3000', 'https://www.getpostman.com'];
+const allowedOrigins = ['http://localhost:3000', 'https://agile-job-front.vercel.app'];
 
 app.use(cors({
     origin: (origin, callback)=>{
@@ -26,7 +26,7 @@ app.use(cors({
     }
 }));
 
-const port = 3002;
+const port = process.env.PORT ||3002;
 
 dotenv.config();
 

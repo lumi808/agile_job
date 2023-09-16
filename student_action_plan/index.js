@@ -10,9 +10,9 @@ app.use(express.urlencoded({extended: 'false'}))
 app.use(express.json());
 app.use(fileUpload());
 
-const port = 3003;
+const port = process.env.PORT || 3003;
 
-const allowedOrigins = ['http://localhost:3000'];
+const allowedOrigins = ['http://localhost:3000', 'https://agile-job-front.vercel.app'];
 
 app.use(cors({
     origin: (origin, callback)=>{
