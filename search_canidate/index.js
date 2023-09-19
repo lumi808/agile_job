@@ -54,14 +54,33 @@ const pineconeIndex = client.Index(process.env.PINECONE_INDEX);
 const vectorStore = await PineconeStore.fromExistingIndex(
     embeddings,
     { pineconeIndex },
+    texts
 );
 
+function getCandidates(candidates) {
+    const ans = [];
+    let i = 0;
+    for(const canidate of candidates){
+        const candidateInfo = {
+            "id": i,
+            "name": canidate.name,
+            "description": canidate.description,
+            "skills": canidate.skills,
+            "experience": canidate.experience,
+        };
+
+        ans.push(candidateInfo);
+        i = i + 1;
+    }
+
+    return ans;
+}
 
 const getData = async (query) => {
-    const context = await vectorStore.similaritySearch(query, 1);
-    const pageContent = context[0].pageContent
+    const context = await vectorStore.similaritySearch(query, 4);
+    const pageContentsArray = context.map((dict) => dict.pageContent).join(' ');
 
-    const systemContent = `You are an assistant that helps people to find suitable job candidates for their companies according to job description. When you are asked to show candidates you show candidates with their name, descroption, skills, experience from this list: ${pageContent}. Your answer should look like this: 'Тут самые подходящие кандидаты для вышего проекта: *candidates*'.`;
+    const systemContent = `You are an assistant that helps people to find suitable job candidates for their companies according to job description. When you are asked to show candidates you show candidates with their name, descroption, skills, experience from this list: ${pageContentsArray}.`;
     const userContent = `Show suitable candidates for this job: ${query}`;
 
     const messages = [
@@ -69,17 +88,62 @@ const getData = async (query) => {
         { role: "user", content: userContent}
     ];
 
-    const payload = {
-        model: 'gpt-3.5-turbo',
+    const function_descriptions = [
+        {
+            "name": "getCandidates",
+            "description": "Get candidates array with information about them, such as name, description, skills, experience",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "candidates": {
+                        "type": "object",
+                        "description": "List of candidates with their names, description, skills, experience",
+                        "properties": {
+                            "name": {
+                                "type": "string",
+                                "description": "candidate's names"
+                            },
+                            "description": {
+                                "type": "string",
+                                "description": "candidate's description"
+                            },
+                            "skills": {
+                                "type": "string",
+                                "description": "candidate's skills"
+                            },
+                            "experience": {
+                                "type": "string",
+                                "description": "candidate's experience"
+                            },
+                        }
+                    },
+                },
+                "required": ["candidates"]
+            },
+        }
+    ]
+
+    const payload_function = {
+        model: 'gpt-3.5-turbo-0613',
         messages: messages,
-        max_tokens: 1024,
-        temperature: 0.7,
-        presence_penalty: 0,
-        frequency_penalty: 0.1,
+        functions: function_descriptions,
+        function_call: "auto",
     };
 
-    const response = await openai.chat.completions.create(payload);
-    return response.choices[0].message.content;
+    const response_function = await openai.chat.completions.create(payload_function);
+
+    console.log(response_function.choices[0].message);
+
+    const args = JSON.parse(response_function.choices[0].message.function_call.arguments);
+
+    const candidates = args.candidates;
+
+    const ans = getCandidates(candidates);
+    const uniqueAns = ans.filter((candidate, index, self) => {
+        return self.findIndex((c) => c.name === candidate.name) === index;
+    });
+
+    return uniqueAns;
 };
 
 app.post('/search', cors(), async (req, res)=>{
@@ -88,7 +152,7 @@ app.post('/search', cors(), async (req, res)=>{
     try{
         const response = await getData(jobDescription);
         
-        if(response === '' || response === null){
+        if(response === null){
             return res.status(500).json({ error: 'Error while loading candidates' });
         }
 
