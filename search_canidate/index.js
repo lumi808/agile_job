@@ -48,11 +48,11 @@ const embeddings = new OpenAIEmbeddings({openAIApiKey: process.env.OPENAI_KEY});
 const client = new PineconeClient();
 
 await client.init({
-    environment: process.env.PINECONE_ENV,
+    environment: "gcp-starter",
     apiKey: process.env.PINECONE_API_KEY,
 });
 
-const pineconeIndex = client.Index(process.env.PINECONE_INDEX);
+const pineconeIndex = client.Index("jasaim");
 
 const vectorStore = await PineconeStore.fromExistingIndex(
     embeddings,
