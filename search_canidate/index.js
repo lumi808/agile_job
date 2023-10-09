@@ -13,7 +13,7 @@ const app = express();
 
 app.use(express.json());
 
-const allowedOrigins = ['http://localhost:3000', 'https://agile-job-front.vercel.app'];
+const allowedOrigins = ['http://localhost:3000', 'https://agile-job-front.vercel.app', 'https://testapp.ediploma.kz'];
 
 app.use(cors({
     origin: (origin, callback)=>{
