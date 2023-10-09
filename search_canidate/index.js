@@ -32,18 +32,21 @@ dotenv.config();
 
 const openai = new OpenAI({apiKey: process.env.OPENAI_KEY});
 
-const loader = new TextLoader("output.txt");
+const loader = new TextLoader("students.txt");
+
 const docs = await loader.load();
 
 const textSplitter = new RecursiveCharacterTextSplitter({
     chunkSize:1000,
     chunkOverlap:200,
 });
-const texts = textSplitter.splitDocuments(docs);
+
+const splittedDocs = await textSplitter.splitDocuments(docs);
 
 const embeddings = new OpenAIEmbeddings({openAIApiKey: process.env.OPENAI_KEY});
 
 const client = new PineconeClient();
+
 await client.init({
     environment: process.env.PINECONE_ENV,
     apiKey: process.env.PINECONE_API_KEY,
@@ -54,7 +57,6 @@ const pineconeIndex = client.Index(process.env.PINECONE_INDEX);
 const vectorStore = await PineconeStore.fromExistingIndex(
     embeddings,
     { pineconeIndex },
-    texts
 );
 
 function getCandidates(candidates) {
@@ -78,6 +80,7 @@ function getCandidates(candidates) {
 
 const getData = async (query) => {
     const context = await vectorStore.similaritySearch(query, 4);
+    console.log(context);
     const pageContentsArray = context.map((dict) => dict.pageContent).join(' ');
 
     const systemContent = `You are an assistant that helps people to find suitable job candidates for their companies according to job description. When you are asked to show candidates you show candidates with their name, descroption, skills, experience from this list: ${pageContentsArray}.`;
