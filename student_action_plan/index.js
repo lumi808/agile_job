@@ -12,7 +12,7 @@ app.use(fileUpload());
 
 const port = process.env.PORT || 3003;
 
-const allowedOrigins = ['http://localhost:3000', 'https://agile-job-front.vercel.app'];
+const allowedOrigins = ['http://localhost:3000', 'https://agile-job-front.vercel.app', 'http://localhost:3000/app/diploma'];
 
 app.use(cors({
     origin: (origin, callback)=>{
