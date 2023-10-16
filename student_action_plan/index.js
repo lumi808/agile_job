@@ -27,7 +27,7 @@ app.use(cors({
 
 dotenv.config({ path: './.env'});
 
-const openai = new OpenAI({apiKey: process.env.OPENAI_KEY_SYRYM});
+const openai = new OpenAI({apiKey: process.env.OPENAI_KEY});
 
 
 app.post('/student-action-plan/generate-plan', cors(), async (req, res)=>{
