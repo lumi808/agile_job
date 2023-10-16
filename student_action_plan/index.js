@@ -27,7 +27,7 @@ app.use(cors({
 
 dotenv.config({ path: './.env'});
 
-const openai = new OpenAI({apiKey: process.env.OPENAI_KEY});
+const openai = new OpenAI({apiKey: process.env.OPENAI_KEY_SYRYM});
 
 
 app.post('/student-action-plan/generate-plan', cors(), async (req, res)=>{
@@ -54,7 +54,7 @@ app.post('/student-action-plan/generate-plan', cors(), async (req, res)=>{
         console.log(prompt);
 
         const payload = {
-            model: 'gpt-3.5-turbo',
+            model: 'gpt-4',
             messages: messages,
             temperature: 0.2,
             max_tokens: 1024,
