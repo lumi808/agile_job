@@ -52,7 +52,7 @@ app.post('/generate-from-task', cors(), async (req, res)=>{
         ];
     
         const payload = {
-            model: 'gpt-4',
+            model: 'gpt-3.5-turbo',
             messages: messages,
             temperature: 0.2,
             max_tokens: 1024,
