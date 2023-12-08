@@ -13,17 +13,19 @@ const app = express();
 
 app.use(express.json());
 
-const allowedOrigins = ['http://localhost:3000', 'https://agile-job-front.vercel.app', 'https://testapp.ediploma.kz'];
+const allowedOrigins = ['http://localhost:3000','http://localhost:8080', 'https://agile-job-front.vercel.app', 'https://testapp.ediploma.kz', 'https://api.ediploma.kz'];
 
 app.use(cors({
     origin: (origin, callback)=>{
-        if(allowedOrigins.includes(origin)){
+        console.log(origin);
+        if(!origin || allowedOrigins.indexOf(origin) !== -1){
             callback(null, true);
         }
         else{
             callback(new Error('Now Allowed by CORS'));
         }
-    }
+    },
+    credentials: true
 }));
 
 const port = process.env.PORT ||3002;
@@ -148,6 +150,11 @@ const getData = async (query) => {
 
     return uniqueAns;
 };
+
+app.get('/reset', cors(), (req, res)=>{
+    console.log("Asked me to reset!");
+    return res.status(200).json({ message: 'Data reset successfully on SearchCandidate' });
+});
 
 app.post('/search', cors(), async (req, res)=>{
     const { jobDescription } = req.body;
