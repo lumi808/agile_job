@@ -44,7 +44,7 @@ function generateUniqueId() {
 
 app.get('/reset', cors(), (req, res)=>{
     console.log("Asked me to reset!");
-    return res.status(200).json({ message: 'Data reset successfully' });
+    return res.status(200).json({ message: 'Data reset successfully on JobDescGenerator' });
 });
 
 app.post('/generate-from-task', cors(), async (req, res)=>{
