@@ -6,7 +6,7 @@ const cors = require('cors');
 
 app.use(express.json())
 
-const allowedOrigins = ['http://localhost:3000','http://localhost:8080', 'https://agile-job-front.vercel.app', 'https://testapp.ediploma.kz', 'https://api.ediploma.kz'];
+const allowedOrigins = ['http://localhost:3000','http://localhost:8080', 'https://agile-job-front.vercel.app', 'https://testapp.ediploma.kz', 'https://api.ediploma.kz', 'http://app.ediplomas.kz'];
 
 app.use(cors({
     origin: (origin, callback)=>{
