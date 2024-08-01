@@ -132,7 +132,7 @@ app.get('/chat-stream', cors(), async (req, res)=>{
     console.log(mergedMessages);
 
     const payload = {
-        model: 'gpt-3.5-turbo',
+        model: 'gpt-4o',
         messages: mergedMessages,
         stream: true,
         temperature: 0.2,
@@ -206,7 +206,7 @@ app.get('/stream-text', cors(), async (req, res)=>{
     ];
 
     const payload = {
-        model: 'gpt-3.5-turbo',
+        model: 'gpt-4o',
         messages: messages,
         stream: true,
         temperature: 0.2,
@@ -264,7 +264,7 @@ app.post('/generate-from-project', cors(), async (req, res)=>{
         ];
     
         const payload = {
-            model: 'gpt-3.5-turbo',
+            model: 'gpt-4o',
             messages: messages,
             temperature: 0.2,
             max_tokens: 1024,
