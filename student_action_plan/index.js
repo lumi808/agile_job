@@ -108,7 +108,7 @@ app.get('/student-action-plan/stream-text', cors(), async (req, res)=>{
     ];
 
     const payload = {
-        model: 'gpt-3.5-turbo',
+        model: 'gpt-4o',
         messages: messages,
         stream: true,
         temperature: 0.2,
